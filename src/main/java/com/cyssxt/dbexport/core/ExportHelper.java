@@ -24,11 +24,15 @@ import org.apache.poi.xssf.streaming.SXSSFWorkbook;
 public class ExportHelper {
     private SXSSFWorkbook sxssfWorkbook;
     private ExportConfig exportConfig;
+    private int rowNum=-1;
+    private int nextRow(){
+        return ++rowNum;
+    }
 
     public static class Builder{
 
     }
-    
+
     private ExportHelper(){
 
     }
@@ -37,13 +41,17 @@ public class ExportHelper {
         return new ExportHelper();
     }
 
+    public void setExportConfig(ExportConfig config){
+        this.exportConfig = config;
+    }
+
     public void write(String path) throws IOException {
         File file = new File(path);
         if(!file.exists()){
             file.createNewFile();
         }
         FileOutputStream fos = new FileOutputStream(file);
-        if(null==sxssfWorkbook){
+        if(null!=sxssfWorkbook){
             sxssfWorkbook.write(fos);
             sxssfWorkbook.close();
         }
@@ -54,7 +62,11 @@ public class ExportHelper {
         start(clazz);
         write(path);
     }
-    public void start(Class clazz) throws SQLException, ClassNotFoundException, IntrospectionException, IOException {
+    void initConfig(){
+        this.exportConfig = Optional.ofNullable(this.exportConfig).orElse(new ExportConfig(true));
+    }
+    public void start(Class clazz) throws SQLException, ClassNotFoundException{
+        initConfig();
         ExportTable exportTable = (ExportTable) clazz.getAnnotation(ExportTable.class);
         if(exportTable!=null){
             DataResult dataResult = DbUtil.query(exportTable);
@@ -79,23 +91,24 @@ public class ExportHelper {
         List<Map<String,Object>> resultItems = result.getItems();
         sxssfWorkbook = new SXSSFWorkbook();
         SXSSFSheet sheet = sxssfWorkbook.createSheet();
-        int rowNum = 0;
-        SXSSFRow row = sheet.createRow(rowNum);
-        for(int i=0;i<items.size();i++){
-            ExportItem item = items.get(i);
-            int width = item.getWidth();
-            sheet.setColumnWidth(i, (int)((width + 0.72) * 256));
-            String title = exportCallback.getTitle(item);
-            SXSSFCell cell = row.createCell(i);
-            cell.setCellValue(title);
+        SXSSFRow row;
+        if(this.exportConfig.getShowTitleFlag()){
+            row = sheet.createRow(nextRow());
+            for(int i=0;i<items.size();i++){
+                ExportItem item = items.get(i);
+                int width = item.getWidth();
+                sheet.setColumnWidth(i, (int)((width + 0.72) * 256));
+                String title = exportCallback.getTitle(item);
+                SXSSFCell cell = row.createCell(i);
+                cell.setCellValue(title);
+            }
         }
         CellStyle cellStyle = sxssfWorkbook.createCellStyle();
         DataFormat dateFormat = sxssfWorkbook.createDataFormat();
         cellStyle.setDataFormat(dateFormat.getFormat("yyyy-MM-dd HH:mm"));
         CellStyle textStyle = sxssfWorkbook.createCellStyle();
         for(Map<String,Object> item:resultItems){
-            rowNum++;
-            row = sheet.createRow(rowNum);
+            row = sheet.createRow(nextRow());
             for(int i=0;i<items.size();i++){
                 ExportItem ei = items.get(i);
                 String column = ei.getColumn();

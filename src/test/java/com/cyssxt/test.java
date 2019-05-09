@@ -11,11 +11,8 @@ import java.sql.SQLException;
 
 public class test {
 
-    public static void main(String[] args) throws ClassNotFoundException, SQLException, IntrospectionException, IOException {
-
-    }
     @Test
     public void test() throws ClassNotFoundException, SQLException, IntrospectionException, IOException {
-        ExportHelper.getInstance().start(TestBean.class);
+        ExportHelper.getInstance().start(TestBean.class,"./export.xlsx");
     }
 }

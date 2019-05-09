@@ -12,6 +12,6 @@ public class DefaultExportCallback implements ExportCallback{
 
     @Override
     public Object getValue(String column, Map<String, Object> item) {
-        return null;
+        return item.get(column);
     }
 }
