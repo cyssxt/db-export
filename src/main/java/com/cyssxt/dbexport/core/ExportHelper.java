@@ -4,7 +4,6 @@ import com.cyssxt.dbexport.annotation.ExportBean;
 import com.cyssxt.dbexport.annotation.ExportTable;
 import com.cyssxt.dbexport.bean.DataResult;
 import com.cyssxt.dbexport.bean.ExportItem;
-
 import java.beans.IntrospectionException;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -13,6 +12,8 @@ import java.lang.reflect.Field;
 import java.sql.*;
 import java.util.*;
 import java.util.Date;
+
+import com.cyssxt.dbexport.config.ExportConfig;
 import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.DataFormat;
 import org.apache.poi.xssf.streaming.SXSSFCell;
@@ -21,8 +22,39 @@ import org.apache.poi.xssf.streaming.SXSSFSheet;
 import org.apache.poi.xssf.streaming.SXSSFWorkbook;
 
 public class ExportHelper {
+    private SXSSFWorkbook sxssfWorkbook;
+    private ExportConfig exportConfig;
 
-    public static void start(Class clazz) throws SQLException, ClassNotFoundException, IntrospectionException, IOException {
+    public static class Builder{
+
+    }
+    
+    private ExportHelper(){
+
+    }
+
+    public static ExportHelper getInstance(){
+        return new ExportHelper();
+    }
+
+    public void write(String path) throws IOException {
+        File file = new File(path);
+        if(!file.exists()){
+            file.createNewFile();
+        }
+        FileOutputStream fos = new FileOutputStream(file);
+        if(null==sxssfWorkbook){
+            sxssfWorkbook.write(fos);
+            sxssfWorkbook.close();
+        }
+
+    }
+
+    public void start(Class clazz,String path) throws SQLException, ClassNotFoundException, IntrospectionException, IOException {
+        start(clazz);
+        write(path);
+    }
+    public void start(Class clazz) throws SQLException, ClassNotFoundException, IntrospectionException, IOException {
         ExportTable exportTable = (ExportTable) clazz.getAnnotation(ExportTable.class);
         if(exportTable!=null){
             DataResult dataResult = DbUtil.query(exportTable);
@@ -43,24 +75,24 @@ public class ExportHelper {
         }
     }
 
-    public static void export(List<ExportItem> items,DataResult result) throws IOException {
+    public SXSSFWorkbook export(List<ExportItem> items,DataResult result,ExportCallback exportCallback){
         List<Map<String,Object>> resultItems = result.getItems();
-        SXSSFWorkbook hssfWorkbook = new SXSSFWorkbook();
-        SXSSFSheet sheet = hssfWorkbook.createSheet();
+        sxssfWorkbook = new SXSSFWorkbook();
+        SXSSFSheet sheet = sxssfWorkbook.createSheet();
         int rowNum = 0;
         SXSSFRow row = sheet.createRow(rowNum);
         for(int i=0;i<items.size();i++){
             ExportItem item = items.get(i);
             int width = item.getWidth();
             sheet.setColumnWidth(i, (int)((width + 0.72) * 256));
-            String title = item.getTitle();
+            String title = exportCallback.getTitle(item);
             SXSSFCell cell = row.createCell(i);
             cell.setCellValue(title);
         }
-        CellStyle cellStyle = hssfWorkbook.createCellStyle();
-        DataFormat dateFormat = hssfWorkbook.createDataFormat();
+        CellStyle cellStyle = sxssfWorkbook.createCellStyle();
+        DataFormat dateFormat = sxssfWorkbook.createDataFormat();
         cellStyle.setDataFormat(dateFormat.getFormat("yyyy-MM-dd HH:mm"));
-        CellStyle textStyle = hssfWorkbook.createCellStyle();
+        CellStyle textStyle = sxssfWorkbook.createCellStyle();
         for(Map<String,Object> item:resultItems){
             rowNum++;
             row = sheet.createRow(rowNum);
@@ -71,7 +103,7 @@ public class ExportHelper {
                     column = ei.getFieldName();
                 }
                 column = column.toLowerCase();
-                Object value = item.get(column);
+                Object value = exportCallback.getValue(column,item);
                 SXSSFCell cell = row.createCell(i);
                 if(value instanceof Date){
                     cell.setCellStyle(cellStyle);
@@ -82,11 +114,10 @@ public class ExportHelper {
                 }
             }
         }
-        File file = new File("export.xlsx");
-        System.out.println(file.getAbsolutePath());
-        FileOutputStream fos = new FileOutputStream(file);
-//        System.out.println(fos);
-        hssfWorkbook.write(fos);
-        hssfWorkbook.close();
+        return sxssfWorkbook;
+    }
+
+    public SXSSFWorkbook export(List<ExportItem> items,DataResult result) {
+        return export(items,result,new DefaultExportCallback());
     }
 }

@@ -16,6 +16,6 @@ public class test {
     }
     @Test
     public void test() throws ClassNotFoundException, SQLException, IntrospectionException, IOException {
-        ExportHelper.start(TestBean.class);
+        ExportHelper.getInstance().start(TestBean.class);
     }
 }
