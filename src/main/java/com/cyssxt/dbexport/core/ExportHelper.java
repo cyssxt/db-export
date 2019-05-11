@@ -30,17 +30,22 @@ public class ExportHelper {
     }
 
     public static class Builder{
-        public static void create(){
+        public static ExportHelper create(){
+            ExportConfig exportConfig = new ExportConfig();
+            ExportHelper exportHelper = new ExportHelper();
+            exportHelper.setExportConfig(exportConfig);
+            return exportHelper;
+        }
 
+        public static ExportHelper create(ExportConfig config){
+            ExportHelper exportHelper = new ExportHelper();
+            exportHelper.setExportConfig(config);
+            return exportHelper;
         }
     }
 
     private ExportHelper(){
 
-    }
-
-    public static ExportHelper getInstance(){
-        return new ExportHelper();
     }
 
     public void setExportConfig(ExportConfig config){
