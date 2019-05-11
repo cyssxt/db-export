@@ -1,4 +1,4 @@
-# db-export
+# 数据库导出组件
 ## @ExportTable注解 类注解
 - url:数据库连接url
 - tableName：数据库表明
