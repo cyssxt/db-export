@@ -7,7 +7,7 @@
 ## ExportBean 字段注解
 - title:excel标题
 - width:列宽度
-- column:对应数据库字段名
+- column:对应数据库字段名 如果没有设置，则与字段同名
 - sort:排序字段 增量排序
 示例:
 <pre><code>
@@ -39,4 +39,13 @@ public class TestBean {
   ExportHelper exportHelper = ExportHelper.Builder.create();
   exportHelper.start(TestBean.class,"./export.xlsx");//第二个参数是导出文件地址
 </code></pre>
+
+## ExportCallback
+可以通过次导出回调来设置导出字段值
+<pre><code>
+  String getTitle(ExportItem item);//获取字段标题
+  Object getValue(String column, Map<String, Object> item);//获取value值
+</code></pre>
+
+DefaultExportCallback 默认实现类 设置excel标题和value值
 
