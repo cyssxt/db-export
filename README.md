@@ -1,4 +1,4 @@
-# 数据库导出组件
+# 代码导出方式
 ## @ExportTable注解 类注解
 - url:数据库连接url
 - tableName：数据库表明
@@ -48,4 +48,28 @@ public class TestBean {
 </code></pre>
 
 DefaultExportCallback 默认实现类 设置excel标题和value值
+
+
+# 接口导出方式
+接口地址：
+<pre><code>
+    http://ip:port/export
+</code></pre>
+<pre><code>
+{
+    "fileName":"",//导出文件名称，不填为默认名称
+    "dbInfo":{
+        "url":"",//地址
+        "userName":"",//用户名
+        "password":""//密码
+    },
+    items:[{
+        "title":"", //标题
+        "width":100,//宽度
+        "sort":0,//排序
+        "column":"test" //字段名
+    }]
+}
+</code></pre>
+
 

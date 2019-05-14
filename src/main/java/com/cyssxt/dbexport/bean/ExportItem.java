@@ -12,7 +12,9 @@ public class ExportItem {
     String column;
     int sort;
     int width;
+    public ExportItem(){
 
+    }
     public ExportItem(String title, String fieldName,String column,int sort,int width) {
         this.title = title;
         this.fieldName = fieldName;

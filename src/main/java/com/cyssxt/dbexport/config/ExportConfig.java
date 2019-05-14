@@ -9,4 +9,5 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class ExportConfig {
     private Boolean showTitleFlag = false;
+    private Byte requestType;
 }
